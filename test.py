@@ -25,7 +25,7 @@ def debug_print(*args, **kwargs):
 # print something to the output panel in VS Code
 debug_print('Code uploaded!')
 
-print("Press the touch sensor to change the LED color!")
+print("You can see this!")
 
 while True:
     if ts.is_pressed:
