@@ -1,0 +1,4 @@
+1 - Download: http://rubirobot.ru/files/kernel/modules/4.14.117-ev3dev-2.3.5-ev3/rtl8188eu/8188eu.ko
+2 - Change permissions in ssh terminal: sudo chmod -R 777 /lib/modules/4.14.117-ev3dev-2.3.5-ev3/drivers/net/wireless
+3 - In WinSCP, connect to ev3dev via Bluetooth and delete 8188eu.ko file and replace with the one from 1.
+4 - Run sudo modprobe 8188eu after startup of ev3dev to activate WiFi
