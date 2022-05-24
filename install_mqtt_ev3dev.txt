@@ -1,3 +1,4 @@
 1. sudo apt-get update
 2. sudo apt-get install python3-pip
 3. sudo pip3 install paho-mqtt
+4. Test on Raspberry Pi: mosquitto_pub -d -t testTopic -m "Hello world!"
