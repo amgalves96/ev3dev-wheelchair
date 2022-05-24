@@ -2,3 +2,4 @@
 2 - Change permissions in ssh terminal: sudo chmod -R 777 /lib/modules/4.14.117-ev3dev-2.3.5-ev3/drivers/net/wireless
 3 - In WinSCP, connect to ev3dev via Bluetooth and delete 8188eu.ko file and replace with the one from 1.
 4 - Run sudo modprobe 8188eu after startup of ev3dev to activate WiFi
+5 - user: robot | pass: maker
