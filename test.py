@@ -2,7 +2,7 @@
 
 from time import sleep
 
-from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_B, SpeedPercent, MoveTank, SpeedRPM, MoveSteering
+from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_B, OUTPUT_C, SpeedPercent, MoveTank, SpeedRPM, MoveSteering, MediumMotor
 from ev3dev2.sensor import INPUT_1
 from ev3dev2.sensor.lego import TouchSensor
 from ev3dev2.led import Leds
@@ -12,13 +12,6 @@ import os
 import sys
 import time
 
-#test
-
-#m = LargeMotor(OUTPUT_A)
-drive = MoveSteering(OUTPUT_A, OUTPUT_B)
-#ts = TouchSensor()
-rc = RemoteControl()
-
 def debug_print(*args, **kwargs):
     '''Print debug messages to stderr.
 
@@ -26,24 +19,53 @@ def debug_print(*args, **kwargs):
     '''
     print(*args, **kwargs, file=sys.stderr)
 
-# print something to the output panel in VS Code
-debug_print('Code uploaded!')
 
-print("You can see this!")
+if __name__ == "__main__":
+    drive = MoveSteering(OUTPUT_A, OUTPUT_B)
+    #ts = TouchSensor()
+    rc = RemoteControl()
+    rc_motors = RemoteControl(channel=2)
+    medium_motor = MediumMotor(OUTPUT_C)
 
-while True:
-    if rc.red_up:
-        #m.on_for_seconds(SpeedRPM(150), 5)
-        drive.on(0, 20)
-        # drive in a different turn for 3 seconds
-        #tank_drive.on_for_seconds(SpeedPercent(60), SpeedPercent(30), 3)
-    elif rc.red_down:
-        drive.on(0, -20)
-    elif rc.blue_up:
-        drive.on(-100, 20)
-    elif rc.blue_down:
-        drive.on(100, 20)
-    else:
-        drive.on(0, 0)
-    # don't let this loop use 100% CPU
-    #sleep(0.01)
+    # print something to the output panel in VS Code
+    debug_print('Code uploaded!')
+
+    print("Code uploaded!")
+
+    while True:
+        if rc.red_up:
+            #m.on_for_seconds(SpeedRPM(150), 5)
+            drive.on(0, 20)
+            # drive in a different turn for 3 seconds
+            #tank_drive.on_for_seconds(SpeedPercent(60), SpeedPercent(30), 3)
+        elif rc.red_down:
+            drive.on(0, -20)
+        elif rc.blue_up:
+            drive.on(-100, 20)
+        elif rc.blue_down:
+            drive.on(100, 20)
+        elif rc_motors.red_up:
+            if medium_motor.position >= -218:
+                medium_motor.on_to_position(-20, -218)
+                debug_print("State:", medium_motor.state)
+                debug_print("Position:", medium_motor.position)
+        elif rc_motors.red_down:
+            if medium_motor.position <= 0:
+                medium_motor.on_to_position(20, 0)
+                debug_print("State:", medium_motor.state)
+                debug_print("Position:", medium_motor.position)
+        elif rc_motors.blue_up:
+            if medium_motor.position >= -210:
+                medium_motor.on(-20)
+                debug_print("State:", medium_motor.state)
+                debug_print("Position:", medium_motor.position)
+        elif rc_motors.blue_down:
+            if medium_motor.position <= 0:
+                medium_motor.on(20)
+                debug_print("State:", medium_motor.state)
+                debug_print("Position:", medium_motor.position)
+        else:
+            drive.on(0, 0)
+            medium_motor.on(0)
+        # don't let this loop use 100% CPU
+        #sleep(0.01)
