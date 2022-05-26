@@ -2,7 +2,7 @@
 
 from time import sleep
 
-from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_B, OUTPUT_C, SpeedPercent, MoveTank, SpeedRPM, MoveSteering, MediumMotor
+from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_B, OUTPUT_C, SpeedPercent, MoveTank, SpeedRPM, MoveSteering, MediumMotor, OUTPUT_D
 from ev3dev2.sensor import INPUT_1
 from ev3dev2.sensor.lego import TouchSensor
 from ev3dev2.led import Leds
@@ -11,6 +11,8 @@ from ev3dev.core import RemoteControl
 import os
 import sys
 import time
+
+POS_MAX_MED_MOTOR = 205
 
 def debug_print(*args, **kwargs):
     '''Print debug messages to stderr.
@@ -26,6 +28,8 @@ if __name__ == "__main__":
     rc = RemoteControl()
     rc_motors = RemoteControl(channel=2)
     medium_motor = MediumMotor(OUTPUT_C)
+    rc_large_motor = RemoteControl(channel=3)
+    large_motor = LargeMotor(OUTPUT_D)
 
     # print something to the output panel in VS Code
     debug_print('Code uploaded!')
@@ -45,8 +49,8 @@ if __name__ == "__main__":
         elif rc.blue_down:
             drive.on(100, 20)
         elif rc_motors.red_up:
-            if medium_motor.position >= -218:
-                medium_motor.on_to_position(-20, -218)
+            if medium_motor.position >= -POS_MAX_MED_MOTOR:
+                medium_motor.on_to_position(-20, -POS_MAX_MED_MOTOR)
                 debug_print("State:", medium_motor.state)
                 debug_print("Position:", medium_motor.position)
         elif rc_motors.red_down:
@@ -55,7 +59,7 @@ if __name__ == "__main__":
                 debug_print("State:", medium_motor.state)
                 debug_print("Position:", medium_motor.position)
         elif rc_motors.blue_up:
-            if medium_motor.position >= -210:
+            if medium_motor.position >= -(POS_MAX_MED_MOTOR-10):
                 medium_motor.on(-20)
                 debug_print("State:", medium_motor.state)
                 debug_print("Position:", medium_motor.position)
@@ -64,8 +68,22 @@ if __name__ == "__main__":
                 medium_motor.on(20)
                 debug_print("State:", medium_motor.state)
                 debug_print("Position:", medium_motor.position)
+        elif rc_large_motor.blue_up:
+            #if medium_motor.position >= -210:
+            large_motor.on(-10)
+            debug_print("State:", large_motor.state)
+            debug_print("Position:", large_motor.position)
+        elif rc_large_motor.blue_down:
+            #if medium_motor.position <= 0:
+            large_motor.on(10)
+            debug_print("State:", large_motor.state)
+            debug_print("Position:", large_motor.position)
         else:
             drive.on(0, 0)
-            medium_motor.on(0)
-        # don't let this loop use 100% CPU
-        #sleep(0.01)
+
+            # Force motor to hold
+            large_motor.stop(stop_action=LargeMotor.STOP_ACTION_HOLD)
+            medium_motor.stop(stop_action=MediumMotor.STOP_ACTION_HOLD)
+
+            #large_motor.on(0)
+            #medium_motor.on(0)
