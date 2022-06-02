@@ -12,7 +12,7 @@ import os
 import sys
 import time
 
-POS_MAX_MED_MOTOR = 205
+POS_MAX_MED_MOTOR = 208
 
 def debug_print(*args, **kwargs):
     '''Print debug messages to stderr.
@@ -23,6 +23,7 @@ def debug_print(*args, **kwargs):
 
 
 if __name__ == "__main__":
+
     drive = MoveSteering(OUTPUT_A, OUTPUT_B)
     #ts = TouchSensor()
     rc = RemoteControl()
