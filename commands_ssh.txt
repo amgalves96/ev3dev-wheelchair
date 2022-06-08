@@ -1,1 +1,2 @@
-Shutdown - sudo poweroff
+Shutdown -> sudo poweroff
+Connect to WiFI -> sudo modprobe 8188eu
