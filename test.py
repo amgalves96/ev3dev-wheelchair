@@ -24,13 +24,15 @@ def debug_print(*args, **kwargs):
 
 if __name__ == "__main__":
 
+    # Init motors
     drive = MoveSteering(OUTPUT_A, OUTPUT_B)
-    #ts = TouchSensor()
-    rc = RemoteControl()
-    rc_motors = RemoteControl(channel=2)
     medium_motor = MediumMotor(OUTPUT_C)
-    rc_large_motor = RemoteControl(channel=3)
     large_motor = LargeMotor(OUTPUT_D)
+
+    # Assign channel controls
+    rc = RemoteControl() # channel 1 for driving
+    rc_motors = RemoteControl(channel=2) # channel 2 for up and down motor
+    rc_large_motor = RemoteControl(channel=3) # channel 3 for back motor
 
     # print something to the output panel in VS Code
     debug_print('Code uploaded!')
