@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from time import sleep
-
 from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_B, OUTPUT_C, SpeedPercent, MoveTank, SpeedRPM, MoveSteering, MediumMotor, OUTPUT_D
 from ev3dev2.sensor import INPUT_1
 from ev3dev2.sensor.lego import TouchSensor
@@ -26,7 +24,7 @@ def debug_print(*args, **kwargs):
     print(*args, **kwargs, file=sys.stderr)
 
 
-def get_sensor_val(client):
+def publish_motor_values(client):
     while True:
         client.publish("/up_down_motor_pos", medium_motor.position);
         global med_motor_pos
@@ -50,23 +48,23 @@ def rc_control(drive, medium_motor, large_motor, rc, rc_motors, rc_large_motor):
         elif rc_motors.red_up:
             start_time = time.time()
             if med_motor_pos >= -POS_MAX_MED_MOTOR:
-                medium_motor.on_to_position(-20, -POS_MAX_MED_MOTOR)
+                medium_motor.on_to_position(-7, -POS_MAX_MED_MOTOR)
                 debug_print("State:", medium_motor.state)
                 debug_print("Position:", med_motor_pos)
                 debug_print("--- %s seconds ---" % (time.time() - start_time))
         elif rc_motors.red_down:
             if med_motor_pos <= 0:
-                medium_motor.on_to_position(20, 0)
+                medium_motor.on_to_position(7, 0)
                 debug_print("State:", medium_motor.state)
                 debug_print("Position:", med_motor_pos)
         elif rc_motors.blue_up:
-            if med_motor_pos >= -(POS_MAX_MED_MOTOR-10):
-                medium_motor.on(-20)
+            if med_motor_pos >= -(POS_MAX_MED_MOTOR-7):
+                medium_motor.on(-7)
                 debug_print("State:", medium_motor.state)
                 debug_print("Position:", med_motor_pos)
         elif rc_motors.blue_down:
             if med_motor_pos <= 0:
-                medium_motor.on(20)
+                medium_motor.on(7)
                 debug_print("State:", medium_motor.state)
                 debug_print("Position:", med_motor_pos)
         elif rc_large_motor.blue_up:
@@ -109,13 +107,16 @@ if __name__ == "__main__":
     rc_motors = RemoteControl(channel=2) # channel 2 for up and down motor
     rc_large_motor = RemoteControl(channel=3) # channel 3 for back motor
 
+    medium_motor.position = 0
+    large_motor.position = 0
+
     # print something to the output panel in VS Code
     debug_print('Code uploaded!')
 
     # EV3 print
     print("Code uploaded!")
 
-    t1 = threading.Thread(target=get_sensor_val, args=(client, ))
+    t1 = threading.Thread(target=publish_motor_values, args=(client, ))
     t1.start()
 
     t2 = threading.Thread(target=rc_control, args=(drive, medium_motor, large_motor, rc, rc_motors, rc_large_motor))
