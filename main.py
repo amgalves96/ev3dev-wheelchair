@@ -14,6 +14,8 @@ import threading
 
 POS_MAX_MED_MOTOR = 215
 
+UP_DOWN_SPEED = 10
+
 med_motor_pos = 0
 
 def debug_print(*args, **kwargs):
@@ -26,7 +28,7 @@ def debug_print(*args, **kwargs):
 
 def publish_motor_values(client):
     while True:
-        client.publish("/up_down_motor_pos", medium_motor.position);
+        client.publish("/up_down_motor_pos", medium_motor.position)
         global med_motor_pos
         med_motor_pos = medium_motor.position
 
@@ -48,35 +50,35 @@ def rc_control(drive, medium_motor, large_motor, rc, rc_motors, rc_large_motor):
         elif rc_motors.red_up:
             start_time = time.time()
             if med_motor_pos >= -POS_MAX_MED_MOTOR:
-                medium_motor.on_to_position(-7, -POS_MAX_MED_MOTOR)
-                debug_print("State:", medium_motor.state)
+                medium_motor.on_to_position(-UP_DOWN_SPEED, -POS_MAX_MED_MOTOR)
+                #debug_print("State:", medium_motor.state)
                 debug_print("Position:", med_motor_pos)
-                debug_print("--- %s seconds ---" % (time.time() - start_time))
+                #debug_print("--- %s seconds ---" % (time.time() - start_time))
         elif rc_motors.red_down:
             if med_motor_pos <= 0:
-                medium_motor.on_to_position(7, 0)
-                debug_print("State:", medium_motor.state)
+                medium_motor.on_to_position(UP_DOWN_SPEED, 0)
+                #debug_print("State:", medium_motor.state)
                 debug_print("Position:", med_motor_pos)
         elif rc_motors.blue_up:
             if med_motor_pos >= -(POS_MAX_MED_MOTOR-7):
-                medium_motor.on(-7)
-                debug_print("State:", medium_motor.state)
+                medium_motor.on(-UP_DOWN_SPEED)
+                #debug_print("State:", medium_motor.state)
                 debug_print("Position:", med_motor_pos)
         elif rc_motors.blue_down:
             if med_motor_pos <= 0:
-                medium_motor.on(7)
-                debug_print("State:", medium_motor.state)
+                medium_motor.on(UP_DOWN_SPEED)
+                #debug_print("State:", medium_motor.state)
                 debug_print("Position:", med_motor_pos)
         elif rc_large_motor.blue_up:
-            #if medium_motor.position >= -210:
-            large_motor.on(-10)
-            debug_print("State:", large_motor.state)
-            debug_print("Position:", large_motor.position)
+            if large_motor.position > -95:
+                large_motor.on(-7)
+                #debug_print("State:", large_motor.state)
+                debug_print("Position:", large_motor.position)
         elif rc_large_motor.blue_down:
-            #if medium_motor.position <= 0:
-            large_motor.on(10)
-            debug_print("State:", large_motor.state)
-            debug_print("Position:", large_motor.position)
+            if large_motor.position < 0:
+                large_motor.on(7)
+                #debug_print("State:", large_motor.state)
+                debug_print("Position:", large_motor.position)
         else:
             drive.on(0, 0)
 
@@ -95,7 +97,7 @@ if __name__ == "__main__":
     try:
         client.connect("192.168.0.107", 1883)
     except:
-        raise ValueError("Couldn't connect to MQTT broker.")
+        print("Couldn't connect to MQTT broker.")
 
     # Init motors
     drive = MoveSteering(OUTPUT_A, OUTPUT_B)
