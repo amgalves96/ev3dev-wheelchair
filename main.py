@@ -17,6 +17,8 @@ POS_MAX_MED_MOTOR = 215
 UP_DOWN_SPEED = 10
 
 med_motor_pos = 0
+up_down_motor_speed = 0
+last_position = 0
 
 def debug_print(*args, **kwargs):
     '''Print debug messages to stderr.
@@ -26,11 +28,24 @@ def debug_print(*args, **kwargs):
     print(*args, **kwargs, file=sys.stderr)
 
 
-def publish_motor_values(client):
+def publish_speed_up_down_motor(client):
     while True:
-        client.publish("/up_down_motor_pos", medium_motor.position)
         global med_motor_pos
         med_motor_pos = medium_motor.position
+        global up_down_motor_speed
+        time.sleep(0.001)
+        up_down_motor_speed = medium_motor.speed_sp
+        global last_position
+
+        if last_position != med_motor_pos:
+            if up_down_motor_speed > 0:
+                client.publish("/up_down_motor_pos", "down")
+            elif up_down_motor_speed < 0:
+                client.publish("/up_down_motor_pos", "up")
+        else:
+            client.publish("/up_down_motor_pos", "stop")
+
+        last_position = med_motor_pos
 
 
 def rc_control(drive, medium_motor, large_motor, rc, rc_motors, rc_large_motor):
@@ -110,6 +125,7 @@ if __name__ == "__main__":
     rc_large_motor = RemoteControl(channel=3) # channel 3 for back motor
 
     medium_motor.position = 0
+    #medium_motor.speed_sp = 0
     large_motor.position = 0
 
     # print something to the output panel in VS Code
@@ -118,7 +134,7 @@ if __name__ == "__main__":
     # EV3 print
     print("Code uploaded!")
 
-    t1 = threading.Thread(target=publish_motor_values, args=(client, ))
+    t1 = threading.Thread(target=publish_speed_up_down_motor, args=(client, ))
     t1.start()
 
     t2 = threading.Thread(target=rc_control, args=(drive, medium_motor, large_motor, rc, rc_motors, rc_large_motor))
