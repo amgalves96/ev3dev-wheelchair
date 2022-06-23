@@ -12,13 +12,22 @@ import time
 import paho.mqtt.client as mqtt
 import threading
 
-POS_MAX_MED_MOTOR = 215
-
+POS_MAX_UP_DOWN_MOTOR = 215
 UP_DOWN_SPEED = 10
 
-med_motor_pos = 0
+POS_MAX_BACK_MOTOR = 95
+BACK_SPEED = 5
+
+up_down_motor_pos = 0
 up_down_motor_speed = 0
-last_position = 0
+up_down_last_position = 0
+
+back_motor_pos = 0
+back_motor_speed = 0
+back_last_position = 0
+
+top_down_topic = "/up_down_motor_pos"
+back_topic = "/back_motor_pos"
 
 def debug_print(*args, **kwargs):
     '''Print debug messages to stderr.
@@ -30,22 +39,38 @@ def debug_print(*args, **kwargs):
 
 def publish_speed_up_down_motor(client):
     while True:
-        global med_motor_pos
-        med_motor_pos = medium_motor.position
+        global up_down_motor_pos
+        up_down_motor_pos = medium_motor.position
         global up_down_motor_speed
         time.sleep(0.001)
         up_down_motor_speed = medium_motor.speed_sp
-        global last_position
+        global up_down_last_position
 
-        if last_position != med_motor_pos:
+        if up_down_last_position != up_down_motor_pos:
             if up_down_motor_speed > 0:
-                client.publish("/up_down_motor_pos", "down")
+                client.publish(top_down_topic, "down")
             elif up_down_motor_speed < 0:
-                client.publish("/up_down_motor_pos", "up")
-        else:
-            client.publish("/up_down_motor_pos", "stop")
+                client.publish(top_down_topic, "up")
 
-        last_position = med_motor_pos
+        up_down_last_position = up_down_motor_pos
+
+
+def publish_speed_back_motor(client):
+    while True:
+        global back_motor_pos
+        back_motor_pos = large_motor.position
+        global back_motor_speed
+        time.sleep(0.002)
+        back_motor_speed = large_motor.speed_sp
+        global back_last_position
+
+        if back_last_position != back_motor_pos:
+            if back_motor_speed > 0:
+                client.publish(back_topic, "backwards")
+            elif back_motor_speed < 0:
+                client.publish(back_topic, "forward")
+
+        back_last_position = back_motor_pos
 
 
 def rc_control(drive, medium_motor, large_motor, rc, rc_motors, rc_large_motor):
@@ -64,36 +89,47 @@ def rc_control(drive, medium_motor, large_motor, rc, rc_motors, rc_large_motor):
             drive.on(100, 20)
         elif rc_motors.red_up:
             start_time = time.time()
-            if med_motor_pos >= -POS_MAX_MED_MOTOR:
-                medium_motor.on_to_position(-UP_DOWN_SPEED, -POS_MAX_MED_MOTOR)
+            if up_down_motor_pos >= -POS_MAX_UP_DOWN_MOTOR:
+                medium_motor.on_to_position(-UP_DOWN_SPEED, -POS_MAX_UP_DOWN_MOTOR)
                 #debug_print("State:", medium_motor.state)
-                debug_print("Position:", med_motor_pos)
+                debug_print("Position:", up_down_motor_pos)
                 #debug_print("--- %s seconds ---" % (time.time() - start_time))
         elif rc_motors.red_down:
-            if med_motor_pos <= 0:
+            if up_down_motor_pos <= 0:
                 medium_motor.on_to_position(UP_DOWN_SPEED, 0)
                 #debug_print("State:", medium_motor.state)
-                debug_print("Position:", med_motor_pos)
+                debug_print("Position:", up_down_motor_pos)
         elif rc_motors.blue_up:
-            if med_motor_pos >= -(POS_MAX_MED_MOTOR-7):
+            if up_down_motor_pos >= -(POS_MAX_UP_DOWN_MOTOR-7):
                 medium_motor.on(-UP_DOWN_SPEED)
                 #debug_print("State:", medium_motor.state)
-                debug_print("Position:", med_motor_pos)
+                debug_print("Position:", up_down_motor_pos)
         elif rc_motors.blue_down:
-            if med_motor_pos <= 0:
+            if up_down_motor_pos <= 0:
                 medium_motor.on(UP_DOWN_SPEED)
                 #debug_print("State:", medium_motor.state)
-                debug_print("Position:", med_motor_pos)
+                debug_print("Position:", up_down_motor_pos)
+        elif rc_large_motor.red_up:
+            if back_motor_pos >= -POS_MAX_BACK_MOTOR:
+                large_motor.on_to_position(-BACK_SPEED, -POS_MAX_BACK_MOTOR)
+                #debug_print("State:", medium_motor.state)
+                debug_print("Position:", back_motor_pos)
+                #debug_print("--- %s seconds ---" % (time.time() - start_time))
+        elif rc_large_motor.red_down:
+            if back_motor_pos <= 0:
+                large_motor.on_to_position(BACK_SPEED, 0)
+                #debug_print("State:", medium_motor.state)
+                debug_print("Position:", back_motor_pos)
         elif rc_large_motor.blue_up:
-            if large_motor.position > -95:
-                large_motor.on(-7)
+            if back_motor_pos > -POS_MAX_BACK_MOTOR:
+                large_motor.on(-BACK_SPEED)
                 #debug_print("State:", large_motor.state)
-                debug_print("Position:", large_motor.position)
+                debug_print("Position:", back_motor_pos)
         elif rc_large_motor.blue_down:
-            if large_motor.position < 0:
-                large_motor.on(7)
+            if back_motor_pos <= 0:
+                large_motor.on(BACK_SPEED)
                 #debug_print("State:", large_motor.state)
-                debug_print("Position:", large_motor.position)
+                debug_print("Position:", back_motor_pos)
         else:
             drive.on(0, 0)
 
@@ -127,6 +163,8 @@ if __name__ == "__main__":
     medium_motor.position = 0
     #medium_motor.speed_sp = 0
     large_motor.position = 0
+    large_motor.on_to_position(BACK_SPEED, -47)
+    large_motor.position = -47
 
     # print something to the output panel in VS Code
     debug_print('Code uploaded!')
@@ -139,4 +177,7 @@ if __name__ == "__main__":
 
     t2 = threading.Thread(target=rc_control, args=(drive, medium_motor, large_motor, rc, rc_motors, rc_large_motor))
     t2.start()
+
+    t3 = threading.Thread(target=publish_speed_back_motor, args=(client, ))
+    t3.start()
 
