@@ -45,12 +45,15 @@ def publish_speed_up_down_motor(client):
         time.sleep(0.001)
         up_down_motor_speed = medium_motor.speed_sp
         global up_down_last_position
+        #time.sleep(0.001)
 
         if up_down_last_position != up_down_motor_pos:
             if up_down_motor_speed > 0:
-                client.publish(top_down_topic, "down")
+                client.publish(top_down_topic, "d")
             elif up_down_motor_speed < 0:
-                client.publish(top_down_topic, "up")
+                client.publish(top_down_topic, "u")
+        else:
+            client.publish(top_down_topic, "s_ud")
 
         up_down_last_position = up_down_motor_pos
 
@@ -60,15 +63,17 @@ def publish_speed_back_motor(client):
         global back_motor_pos
         back_motor_pos = large_motor.position
         global back_motor_speed
-        time.sleep(0.002)
+        time.sleep(0.001)
         back_motor_speed = large_motor.speed_sp
         global back_last_position
 
         if back_last_position != back_motor_pos:
             if back_motor_speed > 0:
-                client.publish(back_topic, "backwards")
+                client.publish(back_topic, "b")
             elif back_motor_speed < 0:
-                client.publish(back_topic, "forward")
+                client.publish(back_topic, "f")
+        else:
+            client.publish(back_topic, "s_b")
 
         back_last_position = back_motor_pos
 
