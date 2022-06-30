@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from pydoc import cli
 from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_B, OUTPUT_C, SpeedPercent, MoveTank, SpeedRPM, MoveSteering, MediumMotor, OUTPUT_D
 from ev3dev2.sensor import INPUT_1
 from ev3dev2.sensor.lego import TouchSensor
@@ -26,8 +27,16 @@ back_motor_pos = 0
 back_motor_speed = 0
 back_last_position = 0
 
+left_wheel_pos = 0
+right_wheel_pos = 0
+right_wheel_speed = 0
+left_wheel_speed = 0
+last_left_wheel_pos = 0
+last_right_wheel_pos = 0
+
 top_down_topic = "/up_down_motor_pos"
 back_topic = "/back_motor_pos"
+steering_topic = "/steering"
 
 def debug_print(*args, **kwargs):
     '''Print debug messages to stderr.
@@ -37,7 +46,7 @@ def debug_print(*args, **kwargs):
     print(*args, **kwargs, file=sys.stderr)
 
 
-def publish_speed_up_down_motor(client):
+def publish_speed_up_down_motor(client, medium_motor):
     while True:
         global up_down_motor_pos
         up_down_motor_pos = medium_motor.position
@@ -58,7 +67,7 @@ def publish_speed_up_down_motor(client):
         up_down_last_position = up_down_motor_pos
 
 
-def publish_speed_back_motor(client):
+def publish_speed_back_motor(client, large_motor):
     while True:
         global back_motor_pos
         back_motor_pos = large_motor.position
@@ -78,14 +87,39 @@ def publish_speed_back_motor(client):
         back_last_position = back_motor_pos
 
 
+def publish_wheels_motors(client, left_wheel, right_wheel, drive):
+    while True:
+        global left_wheel_pos
+        left_wheel_pos = left_wheel.position
+        global right_wheel_pos
+        right_wheel_pos = right_wheel.position
+        global right_wheel_speed
+        right_wheel_speed = right_wheel.speed_sp
+        global left_wheel_speed
+        left_wheel_speed = left_wheel.speed_sp
+        global last_left_wheel_pos
+        global last_right_wheel_pos
+
+        time.sleep(0.001)
+
+        #client.publish(steering_topic, "L SPEED: " + str(left_wheel_speed) + " L POS: " + str(left_wheel_pos) + "\nR SPEED: " + str(right_wheel_speed) + " R POS: " + str(right_wheel_pos))
+
+        if last_left_wheel_pos != left_wheel_pos and last_right_wheel_pos != right_wheel_pos:
+            if left_wheel_speed > 0 and right_wheel_speed > 0:
+                client.publish(steering_topic, "steer_front")
+            elif left_wheel_speed < 0 and right_wheel_speed < 0:
+                client.publish(steering_topic, "steer_back")
+        else:
+            client.publish(steering_topic, "steer_stop")
+
+        last_left_wheel_pos = left_wheel_pos
+        last_right_wheel_pos = right_wheel_pos
+
+
 def rc_control(drive, medium_motor, large_motor, rc, rc_motors, rc_large_motor):
     while True:
-
         if rc.red_up:
-            #m.on_for_seconds(SpeedRPM(150), 5)
-            drive.on(0, 20)
-            # drive in a different turn for 3 seconds
-            #tank_drive.on_for_seconds(SpeedPercent(60), SpeedPercent(30), 3)
+            drive.on(0, 20) # (steering, speed)
         elif rc.red_down:
             drive.on(0, -20)
         elif rc.blue_up:
@@ -157,6 +191,8 @@ if __name__ == "__main__":
 
     # Init motors
     drive = MoveSteering(OUTPUT_A, OUTPUT_B)
+    left_wheel = LargeMotor(OUTPUT_A)
+    right_wheel = LargeMotor(OUTPUT_B)
     medium_motor = MediumMotor(OUTPUT_C)
     large_motor = LargeMotor(OUTPUT_D)
 
@@ -171,18 +207,24 @@ if __name__ == "__main__":
     large_motor.on_to_position(BACK_SPEED, -47)
     large_motor.position = -47
 
+    left_wheel.position = 0
+    right_wheel.position = 0
+
     # print something to the output panel in VS Code
     debug_print('Code uploaded!')
 
     # EV3 print
     print("Code uploaded!")
 
-    t1 = threading.Thread(target=publish_speed_up_down_motor, args=(client, ))
+    t1 = threading.Thread(target=publish_speed_up_down_motor, args=(client, medium_motor))
     t1.start()
 
     t2 = threading.Thread(target=rc_control, args=(drive, medium_motor, large_motor, rc, rc_motors, rc_large_motor))
     t2.start()
 
-    t3 = threading.Thread(target=publish_speed_back_motor, args=(client, ))
+    t3 = threading.Thread(target=publish_speed_back_motor, args=(client, large_motor))
     t3.start()
+
+    t4 = threading.Thread(target=publish_wheels_motors, args=(client, left_wheel, right_wheel, drive))
+    t4.start()
 
