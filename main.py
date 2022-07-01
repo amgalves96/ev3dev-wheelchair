@@ -13,6 +13,9 @@ import time
 import paho.mqtt.client as mqtt
 import threading
 
+STEERING_LINEAR_SPEED = 20
+STEERING_ANGULAR_SPEED = 9
+
 POS_MAX_UP_DOWN_MOTOR = 215
 UP_DOWN_SPEED = 10
 
@@ -58,11 +61,11 @@ def publish_speed_up_down_motor(client, medium_motor):
 
         if up_down_last_position != up_down_motor_pos:
             if up_down_motor_speed > 0:
-                client.publish(top_down_topic, "d")
+                client.publish(top_down_topic, "down")
             elif up_down_motor_speed < 0:
-                client.publish(top_down_topic, "u")
+                client.publish(top_down_topic, "up")
         else:
-            client.publish(top_down_topic, "s_ud")
+            client.publish(top_down_topic, "stop_up_down")
 
         up_down_last_position = up_down_motor_pos
 
@@ -78,11 +81,11 @@ def publish_speed_back_motor(client, large_motor):
 
         if back_last_position != back_motor_pos:
             if back_motor_speed > 0:
-                client.publish(back_topic, "b")
+                client.publish(back_topic, "back")
             elif back_motor_speed < 0:
-                client.publish(back_topic, "f")
+                client.publish(back_topic, "forward")
         else:
-            client.publish(back_topic, "s_b")
+            client.publish(back_topic, "stop_back")
 
         back_last_position = back_motor_pos
 
@@ -102,13 +105,14 @@ def publish_wheels_motors(client, left_wheel, right_wheel, drive):
 
         time.sleep(0.001)
 
-        #client.publish(steering_topic, "L SPEED: " + str(left_wheel_speed) + " L POS: " + str(left_wheel_pos) + "\nR SPEED: " + str(right_wheel_speed) + " R POS: " + str(right_wheel_pos))
-
-        if last_left_wheel_pos != left_wheel_pos and last_right_wheel_pos != right_wheel_pos:
-            if left_wheel_speed > 0 and right_wheel_speed > 0:
-                client.publish(steering_topic, "steer_front")
-            elif left_wheel_speed < 0 and right_wheel_speed < 0:
-                client.publish(steering_topic, "steer_back")
+        if last_left_wheel_pos < left_wheel_pos and last_right_wheel_pos < right_wheel_pos:
+            client.publish(steering_topic, "steer_front" + str(right_wheel_speed) + '.' + str(left_wheel_speed))
+        elif last_left_wheel_pos > left_wheel_pos and last_right_wheel_pos > right_wheel_pos:
+            client.publish(steering_topic, "steer_back"+ str(right_wheel_speed) + '.' + str(left_wheel_speed))
+        elif last_left_wheel_pos < left_wheel_pos and last_right_wheel_pos > right_wheel_pos:
+            client.publish(steering_topic, "steer_right"+ str(right_wheel_speed) + '.' + str(left_wheel_speed))
+        elif last_left_wheel_pos > left_wheel_pos and last_right_wheel_pos < right_wheel_pos:
+            client.publish(steering_topic, "steer_left"+ str(right_wheel_speed) + '.' + str(left_wheel_speed))
         else:
             client.publish(steering_topic, "steer_stop")
 
@@ -119,13 +123,13 @@ def publish_wheels_motors(client, left_wheel, right_wheel, drive):
 def rc_control(drive, medium_motor, large_motor, rc, rc_motors, rc_large_motor):
     while True:
         if rc.red_up:
-            drive.on(0, 20) # (steering, speed)
+            drive.on(0, STEERING_LINEAR_SPEED) # (steering, speed)
         elif rc.red_down:
-            drive.on(0, -20)
+            drive.on(0, -STEERING_LINEAR_SPEED)
         elif rc.blue_up:
-            drive.on(-100, 20)
+            drive.on(-100, STEERING_ANGULAR_SPEED)
         elif rc.blue_down:
-            drive.on(100, 20)
+            drive.on(100, STEERING_ANGULAR_SPEED)
         elif rc_motors.red_up:
             start_time = time.time()
             if up_down_motor_pos >= -POS_MAX_UP_DOWN_MOTOR:
