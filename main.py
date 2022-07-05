@@ -3,7 +3,7 @@
 from pydoc import cli
 from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_B, OUTPUT_C, SpeedPercent, MoveTank, SpeedRPM, MoveSteering, MediumMotor, OUTPUT_D
 from ev3dev2.sensor import INPUT_4
-from ev3dev2.sensor.lego import TouchSensor, GyroSensor
+from ev3dev2.sensor.lego import TouchSensor
 from ev3dev2.led import Leds
 from ev3dev.core import RemoteControl
 
@@ -120,11 +120,6 @@ def publish_wheels_motors(client, left_wheel, right_wheel, drive):
         last_right_wheel_pos = right_wheel_pos
 
 
-def publish_gyro_values(client, gyro):
-    while True:
-        client.publish('/gyro', gyro.angle)
-
-
 def rc_control(drive, medium_motor, large_motor, rc, rc_motors, rc_large_motor):
     while True:
         if rc.red_up:
@@ -205,11 +200,6 @@ if __name__ == "__main__":
     medium_motor = MediumMotor(OUTPUT_C)
     large_motor = LargeMotor(OUTPUT_D)
 
-    # Init Sensors
-
-    gyro = GyroSensor(INPUT_4)
-    gyro.mode = 'GYRO-ANG'
-
     # Assign channel controls
     rc = RemoteControl() # channel 1 for driving
     rc_motors = RemoteControl(channel=2) # channel 2 for up and down motor
@@ -241,6 +231,3 @@ if __name__ == "__main__":
 
     t4 = threading.Thread(target=publish_wheels_motors, args=(client, left_wheel, right_wheel, drive))
     t4.start()
-
-    t5 = threading.Thread(target=publish_gyro_values, args=(client, gyro))
-    t5.start()
