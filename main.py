@@ -2,9 +2,6 @@
 
 from pydoc import cli
 from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_B, OUTPUT_C, SpeedPercent, MoveTank, SpeedRPM, MoveSteering, MediumMotor, OUTPUT_D
-from ev3dev2.sensor import INPUT_4
-from ev3dev2.sensor.lego import TouchSensor
-from ev3dev2.led import Leds
 from ev3dev.core import RemoteControl
 
 import os
