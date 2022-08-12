@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from pydoc import cli
-from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_B, OUTPUT_C, SpeedPercent, MoveTank, SpeedRPM, MoveSteering, MediumMotor, OUTPUT_D
+from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_B, OUTPUT_C, OUTPUT_D, MoveSteering, MediumMotor
 from ev3dev.core import RemoteControl
 
 import os
