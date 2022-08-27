@@ -1,2 +1,3 @@
 Shutdown -> sudo poweroff
 Connect to WiFI -> sudo modprobe 8188eu
+sudo pass: maker

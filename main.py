@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
 from pydoc import cli
-from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_B, OUTPUT_C, SpeedPercent, MoveTank, SpeedRPM, MoveSteering, MediumMotor, OUTPUT_D
+from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_B, OUTPUT_C,  OUTPUT_D, MoveSteering, MediumMotor
 from ev3dev2.sensor import INPUT_4
 from ev3dev2.sensor.lego import TouchSensor
 from ev3dev2.led import Leds
 from ev3dev.core import RemoteControl
+from ev3dev2.sound import Sound
 
 import os
 import sys
@@ -219,6 +220,9 @@ if __name__ == "__main__":
 
     # EV3 print
     print("Code uploaded!")
+
+    sound = Sound()
+    sound.speak('Code uploaded successfully!')
 
     t1 = threading.Thread(target=publish_speed_up_down_motor, args=(client, medium_motor))
     t1.start()
