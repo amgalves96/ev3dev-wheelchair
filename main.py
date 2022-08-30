@@ -5,7 +5,7 @@ from pydoc import cli
 from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_B, OUTPUT_C,  OUTPUT_D, MoveSteering, MediumMotor
 from ev3dev2.sensor import INPUT_4
 from ev3dev2.sensor.lego import TouchSensor
-from ev3dev.core import RemoteControl
+from ev3dev.core import RemoteControl # old version of ev3dev
 from ev3dev2.sound import Sound
 
 import os
@@ -121,59 +121,67 @@ def publish_wheels_motors(client, left_wheel, right_wheel, drive):
         last_right_wheel_pos = right_wheel_pos
 
 
-def rc_control(drive, medium_motor, large_motor, rc, rc_motors, rc_large_motor):
+def rc_control(drive, medium_motor, large_motor, rc_driving, rc_up_down_motor, rc_back_motor):
+
     while True:
-        if rc.red_up:
+
+        # Channel #1
+        if rc_driving.red_up:
             drive.on(0, STEERING_LINEAR_SPEED) # (steering, speed)
-        elif rc.red_down:
+        elif rc_driving.red_down:
             drive.on(0, -STEERING_LINEAR_SPEED)
-        elif rc.blue_up:
+        elif rc_driving.blue_up:
             drive.on(-100, STEERING_ANGULAR_SPEED)
-        elif rc.blue_down:
+        elif rc_driving.blue_down:
             drive.on(100, STEERING_ANGULAR_SPEED)
-        elif rc_motors.red_up:
-            start_time = time.time()
+
+        # Channel #2
+        elif rc_up_down_motor.red_up:
+            # start_time = time.time()
             if up_down_motor_pos >= -POS_MAX_UP_DOWN_MOTOR:
                 medium_motor.on_to_position(-UP_DOWN_SPEED, -POS_MAX_UP_DOWN_MOTOR)
                 #debug_print("State:", medium_motor.state)
                 debug_print("Position:", up_down_motor_pos)
                 #debug_print("--- %s seconds ---" % (time.time() - start_time))
-        elif rc_motors.red_down:
+        elif rc_up_down_motor.red_down:
             if up_down_motor_pos <= 0:
                 medium_motor.on_to_position(UP_DOWN_SPEED, 0)
                 #debug_print("State:", medium_motor.state)
                 debug_print("Position:", up_down_motor_pos)
-        elif rc_motors.blue_up:
+        elif rc_up_down_motor.blue_up:
             if up_down_motor_pos >= -(POS_MAX_UP_DOWN_MOTOR-7):
                 medium_motor.on(-UP_DOWN_SPEED)
                 #debug_print("State:", medium_motor.state)
                 debug_print("Position:", up_down_motor_pos)
-        elif rc_motors.blue_down:
+        elif rc_up_down_motor.blue_down:
             if up_down_motor_pos <= 0:
                 medium_motor.on(UP_DOWN_SPEED)
                 #debug_print("State:", medium_motor.state)
                 debug_print("Position:", up_down_motor_pos)
-        elif rc_large_motor.red_up:
+
+        # Channel #3
+        elif rc_back_motor.red_up:
             if back_motor_pos >= -POS_MAX_BACK_MOTOR:
                 large_motor.on_to_position(-BACK_SPEED, -POS_MAX_BACK_MOTOR)
                 #debug_print("State:", medium_motor.state)
                 debug_print("Position:", back_motor_pos)
                 #debug_print("--- %s seconds ---" % (time.time() - start_time))
-        elif rc_large_motor.red_down:
+        elif rc_back_motor.red_down:
             if back_motor_pos <= 0:
                 large_motor.on_to_position(BACK_SPEED, 0)
                 #debug_print("State:", medium_motor.state)
                 debug_print("Position:", back_motor_pos)
-        elif rc_large_motor.blue_up:
+        elif rc_back_motor.blue_up:
             if back_motor_pos > -POS_MAX_BACK_MOTOR:
                 large_motor.on(-BACK_SPEED)
                 #debug_print("State:", large_motor.state)
                 debug_print("Position:", back_motor_pos)
-        elif rc_large_motor.blue_down:
+        elif rc_back_motor.blue_down:
             if back_motor_pos <= 0:
                 large_motor.on(BACK_SPEED)
                 #debug_print("State:", large_motor.state)
                 debug_print("Position:", back_motor_pos)
+
         else:
             drive.on(0, 0)
 
@@ -194,44 +202,51 @@ if __name__ == "__main__":
     except:
         print("Couldn't connect to MQTT broker.")
 
-    # Init motors
+    # Initialize Components
     drive = MoveSteering(OUTPUT_A, OUTPUT_B)
     left_wheel = LargeMotor(OUTPUT_A)
     right_wheel = LargeMotor(OUTPUT_B)
     medium_motor = MediumMotor(OUTPUT_C)
     large_motor = LargeMotor(OUTPUT_D)
+    sound = Sound()
 
-    # Assign channel controls
-    rc = RemoteControl() # channel 1 for driving
-    rc_motors = RemoteControl(channel=2) # channel 2 for up and down motor
-    rc_large_motor = RemoteControl(channel=3) # channel 3 for back motor
+    # Assign channel controls for remote control
+    rc_driving = RemoteControl(channel=1) # channel 1 for driving
+    rc_up_down_motor = RemoteControl(channel=2) # channel 2 for up and down motor
+    rc_back_motor = RemoteControl(channel=3) # channel 3 for back motor
+
+    # Initialize motor positions
 
     medium_motor.position = 0
-    #medium_motor.speed_sp = 0
     large_motor.position = 0
-    large_motor.on_to_position(BACK_SPEED, -47)
-    large_motor.position = -47
-
+    large_motor.on_to_position(BACK_SPEED, -47) # sync with digital twin in ROS
+    large_motor.position = -47 # make sure motor is in position
     left_wheel.position = 0
     right_wheel.position = 0
 
-    # print something to the output panel in VS Code
+    # debug print in console
     debug_print('Code uploaded!')
 
-    # EV3 print
+    # EV3 display print
     print("Code uploaded!")
 
-    sound = Sound()
+    # broadcast message
     sound.speak('Code uploaded successfully!')
 
+    # Multithreading
+
+    # up_down motor
     t1 = threading.Thread(target=publish_speed_up_down_motor, args=(client, medium_motor))
     t1.start()
 
-    t2 = threading.Thread(target=rc_control, args=(drive, medium_motor, large_motor, rc, rc_motors, rc_large_motor))
+    # remote control
+    t2 = threading.Thread(target=rc_control, args=(drive, medium_motor, large_motor, rc_driving, rc_up_down_motor, rc_back_motor))
     t2.start()
 
+    # back motor
     t3 = threading.Thread(target=publish_speed_back_motor, args=(client, large_motor))
     t3.start()
 
+    # wheels motors
     t4 = threading.Thread(target=publish_wheels_motors, args=(client, left_wheel, right_wheel, drive))
     t4.start()
