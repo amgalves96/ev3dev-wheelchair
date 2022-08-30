@@ -222,14 +222,14 @@ if __name__ == "__main__":
     left_wheel.position = 0
     right_wheel.position = 0
 
+    # broadcast message
+    sound.speak('Code uploaded successfully!')
+
     # debug print in console
     debug_print('Code uploaded!')
 
     # EV3 display print
     print("Code uploaded!")
-
-    # broadcast message
-    sound.speak('Code uploaded successfully!')
 
     # Multithreading
 
