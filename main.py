@@ -214,7 +214,6 @@ if __name__ == "__main__":
     rc_back_motor = RemoteControl(channel=3) # channel 3 for back motor
 
     # Initialize motor positions
-
     medium_motor.position = 0
     large_motor.position = 0
     large_motor.on_to_position(BACK_SPEED, -47) # sync with digital twin in ROS
