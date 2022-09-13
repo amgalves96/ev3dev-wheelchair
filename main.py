@@ -126,59 +126,75 @@ def rc_control(drive, medium_motor, large_motor, rc_driving, rc_up_down_motor, r
         # Channel #1
         if rc_driving.red_up:
             drive.on(0, STEERING_LINEAR_SPEED) # (steering, speed)
+            debug_print("Posicao Roda Esquerda:", left_wheel_pos)
+            debug_print("Posicao Roda Direita:", left_wheel_pos)
+            debug_print("Velocidade Roda Esquerda:", left_wheel_speed)
+            debug_print("Velocidade Roda Direita:", right_wheel_speed)
         elif rc_driving.red_down:
             drive.on(0, -STEERING_LINEAR_SPEED)
+            debug_print("Posicao Roda Esquerda:", left_wheel_pos)
+            debug_print("Posicao Roda Direita:", left_wheel_pos)
+            debug_print("Velocidade Roda Esquerda:", left_wheel_speed)
+            debug_print("Velocidade Roda Direita:", right_wheel_speed)
         elif rc_driving.blue_up:
             drive.on(-100, STEERING_ANGULAR_SPEED)
+            debug_print("Posicao Roda Esquerda:", left_wheel_pos)
+            debug_print("Posicao Roda Direita:", left_wheel_pos)
+            debug_print("Velocidade Roda Esquerda:", left_wheel_speed)
+            debug_print("Velocidade Roda Direita:", right_wheel_speed)
         elif rc_driving.blue_down:
             drive.on(100, STEERING_ANGULAR_SPEED)
+            debug_print("Posicao Roda Esquerda:", left_wheel_pos)
+            debug_print("Posicao Roda Direita:", left_wheel_pos)
+            debug_print("Velocidade Roda Esquerda:", left_wheel_speed)
+            debug_print("Velocidade Roda Direita:", right_wheel_speed)
 
         # Channel #2
         elif rc_up_down_motor.red_up:
             # start_time = time.time()
             if up_down_motor_pos >= -POS_MAX_UP_DOWN_MOTOR:
                 medium_motor.on_to_position(-UP_DOWN_SPEED, -POS_MAX_UP_DOWN_MOTOR)
-                #debug_print("State:", medium_motor.state)
-                debug_print("Position:", up_down_motor_pos)
+                debug_print("Estado do Motor do Assento:", medium_motor.state)
+                debug_print("Posicao do Motor do Assento:", up_down_motor_pos)
                 #debug_print("--- %s seconds ---" % (time.time() - start_time))
         elif rc_up_down_motor.red_down:
             if up_down_motor_pos <= 0:
                 medium_motor.on_to_position(UP_DOWN_SPEED, 0)
-                #debug_print("State:", medium_motor.state)
-                debug_print("Position:", up_down_motor_pos)
+                debug_print("Estado do Motor do Assento:", medium_motor.state)
+                debug_print("Posicao do Motor do Assento:", up_down_motor_pos)
         elif rc_up_down_motor.blue_up:
             if up_down_motor_pos >= -(POS_MAX_UP_DOWN_MOTOR-7):
                 medium_motor.on(-UP_DOWN_SPEED)
-                #debug_print("State:", medium_motor.state)
-                debug_print("Position:", up_down_motor_pos)
+                debug_print("Estado do Motor do Assento:", medium_motor.state)
+                debug_print("Posicao do Motor do Assento:", up_down_motor_pos)
         elif rc_up_down_motor.blue_down:
             if up_down_motor_pos <= 0:
                 medium_motor.on(UP_DOWN_SPEED)
-                #debug_print("State:", medium_motor.state)
-                debug_print("Position:", up_down_motor_pos)
+                debug_print("Estado do Motor do Assento:", medium_motor.state)
+                debug_print("Posicao do Motor do Assento:", up_down_motor_pos)
 
         # Channel #3
         elif rc_back_motor.red_up:
             if back_motor_pos >= -POS_MAX_BACK_MOTOR:
                 large_motor.on_to_position(-BACK_SPEED, -POS_MAX_BACK_MOTOR)
-                #debug_print("State:", medium_motor.state)
-                debug_print("Position:", back_motor_pos)
+                debug_print("Estado do Motor das Costas:", large_motor.state)
+                debug_print("Posicao do Motor das Costas:", back_motor_pos)
                 #debug_print("--- %s seconds ---" % (time.time() - start_time))
         elif rc_back_motor.red_down:
             if back_motor_pos <= 0:
                 large_motor.on_to_position(BACK_SPEED, 0)
-                #debug_print("State:", medium_motor.state)
-                debug_print("Position:", back_motor_pos)
+                debug_print("Estado do Motor das Costas:", large_motor.state)
+                debug_print("Posicao do Motor das Costas:", back_motor_pos)
         elif rc_back_motor.blue_up:
             if back_motor_pos > -POS_MAX_BACK_MOTOR:
                 large_motor.on(-BACK_SPEED)
-                #debug_print("State:", large_motor.state)
-                debug_print("Position:", back_motor_pos)
+                debug_print("Estado do Motor das Costas:", large_motor.state)
+                debug_print("Posicao do Motor das Costas:", back_motor_pos)
         elif rc_back_motor.blue_down:
             if back_motor_pos <= 0:
                 large_motor.on(BACK_SPEED)
-                #debug_print("State:", large_motor.state)
-                debug_print("Position:", back_motor_pos)
+                debug_print("Estado do Motor das Costas:", large_motor.state)
+                debug_print("Posicao do Motor das Costas:", back_motor_pos)
 
         else:
             drive.on(0, 0)
@@ -218,6 +234,7 @@ if __name__ == "__main__":
     large_motor.position = 0
     large_motor.on_to_position(BACK_SPEED, -47) # sync with digital twin in ROS
     large_motor.position = -47 # make sure motor is in position
+    debug_print("Posicao do Motor Costas:", large_motor.position)
     left_wheel.position = 0
     right_wheel.position = 0
 
@@ -225,7 +242,7 @@ if __name__ == "__main__":
     sound.speak('Code uploaded successfully!')
 
     # debug print in console
-    debug_print('Code uploaded!')
+    # debug_print('Code uploaded!')
 
     # EV3 display print
     print("Code uploaded!")
