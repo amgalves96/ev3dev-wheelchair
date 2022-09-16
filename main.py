@@ -127,25 +127,25 @@ def rc_control(drive, medium_motor, large_motor, rc_driving, rc_up_down_motor, r
         if rc_driving.red_up:
             drive.on(0, STEERING_LINEAR_SPEED) # (steering, speed)
             debug_print("Posicao Roda Esquerda:", left_wheel_pos)
-            debug_print("Posicao Roda Direita:", left_wheel_pos)
+            debug_print("Posicao Roda Direita:", right_wheel_pos)
             debug_print("Velocidade Roda Esquerda:", left_wheel_speed)
             debug_print("Velocidade Roda Direita:", right_wheel_speed)
         elif rc_driving.red_down:
             drive.on(0, -STEERING_LINEAR_SPEED)
             debug_print("Posicao Roda Esquerda:", left_wheel_pos)
-            debug_print("Posicao Roda Direita:", left_wheel_pos)
+            debug_print("Posicao Roda Direita:", right_wheel_pos)
             debug_print("Velocidade Roda Esquerda:", left_wheel_speed)
             debug_print("Velocidade Roda Direita:", right_wheel_speed)
         elif rc_driving.blue_up:
             drive.on(-100, STEERING_ANGULAR_SPEED)
             debug_print("Posicao Roda Esquerda:", left_wheel_pos)
-            debug_print("Posicao Roda Direita:", left_wheel_pos)
+            debug_print("Posicao Roda Direita:", right_wheel_pos)
             debug_print("Velocidade Roda Esquerda:", left_wheel_speed)
             debug_print("Velocidade Roda Direita:", right_wheel_speed)
         elif rc_driving.blue_down:
             drive.on(100, STEERING_ANGULAR_SPEED)
             debug_print("Posicao Roda Esquerda:", left_wheel_pos)
-            debug_print("Posicao Roda Direita:", left_wheel_pos)
+            debug_print("Posicao Roda Direita:", right_wheel_pos)
             debug_print("Velocidade Roda Esquerda:", left_wheel_speed)
             debug_print("Velocidade Roda Direita:", right_wheel_speed)
 
